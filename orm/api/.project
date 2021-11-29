@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>api</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>Diagrams/models.py</name>
+			<type>1</type>
+			<location>//home/olivier/Bureau/OC-Cours-Projects/OpenClassRooms-Projects/P12/Working_directory/P12_secure_backend_architecture_with_Django_ORM/orm/api/models.py</location>
+		</link>
+	</linkedResources>
+</projectDescription>
