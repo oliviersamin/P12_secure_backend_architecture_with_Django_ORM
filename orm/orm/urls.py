@@ -25,7 +25,7 @@ router.register('events', EventsViewset, basename='events')
 
 urlpatterns = [
     path('management/', admin.site.urls),
-    # path('api-auth/', include('rest_framework.urls')),
+    path('api-auth/', include('rest_framework.urls')),
     path('api/', include(router.urls)),
-    # path('api/', include('api.urls', namespace='api'))
+    path('api/', include('api.urls', namespace='api'))
 ]

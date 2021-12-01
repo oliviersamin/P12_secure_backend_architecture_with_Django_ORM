@@ -6,17 +6,17 @@ class Client(models.Model):
     client_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=25, blank=True)
-    email = models.CharField(max_length=100, unique=True, blank=True)
+    email = models.EmailField(max_length=100, unique=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
     company_name = models.CharField(max_length=250, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True)
-    date_updated = models.DateTimeField(auto_now_add=True, blank=True)
+    date_updated = models.DateTimeField(auto_now=True, blank=True)
     is_confirmed_client = models.BooleanField(default=False)
 
     def __str__(self):
         name = self.first_name + " " + self.last_name
-        displayed = "name: {} - is_confirmed_client: {} - phone: {} - email: {}".format(name, str(self.is_confirmed_client), self.phone, self.email)
+        displayed = "name: {} - phone: {} - email: {}".format(name, self.phone, self.email)
         return displayed
 
 
@@ -25,7 +25,7 @@ class Sales(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         displayed = "name: {}".format(str(self.user))
@@ -34,18 +34,17 @@ class Sales(models.Model):
 
 class Contract(models.Model):
     contract_id = models.AutoField(primary_key=True)
-    client = models.OneToOneField(Client, on_delete=models.CASCADE, null=True)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now_add=True, blank=True)
+    date_updated = models.DateTimeField(auto_now=True, blank=True)
     signed = models.BooleanField(default=False)
     amount = models.FloatField(blank=True)
     payment_due = models.DateTimeField(blank=True)
-    sales = models.OneToOneField(Sales, on_delete=models.CASCADE)
+    sales = models.ForeignKey(Sales, on_delete=models.CASCADE)
 
     def __str__(self):
-        displayed = "id: {} - client: {} - signed: {} - amount: {} - payment_due: {}".\
-            format(str(self.contract_id), str(self.client), self.signed, str(self.amount),
-                   self.payment_due)
+        displayed = "id: {} - client: {} - sales: {} - signed: {} ".\
+            format(str(self.contract_id), str(self.client), str(self.sales), self.signed)
         return displayed
 
 
@@ -53,7 +52,7 @@ class Event(models.Model):
     event_id = models.AutoField(primary_key=True)
     contract = models.OneToOneField(Contract, on_delete=models.CASCADE, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
     event_performed = models.BooleanField(default=False)
     attendees = models.IntegerField(blank=True)
     event_date = models.DateTimeField(blank=True)
@@ -70,11 +69,10 @@ class Support(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        displayed = "name: {}".\
-            format(str(self.user))
+        displayed = "name: {}".format(str(self.user))
         return displayed
 
