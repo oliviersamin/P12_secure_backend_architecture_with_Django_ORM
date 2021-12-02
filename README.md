@@ -41,7 +41,6 @@ Steps 1, 3, 5 and 6 are only required for initial installation. For subsequent l
 The API can be used from:
 * your Web browser using the native DRF browsable API via the URL: https://127.0.0.1:8000/management/  
 Some users have already been created and can be used to navigate through the API:
-  * administrator user: login:admin1 - password: passwd_admin1 
   * salesman users:
     1. login: sales1  -  password: passwd_sales1  
     2. login: sales2  -  password: passwd_sales2  
