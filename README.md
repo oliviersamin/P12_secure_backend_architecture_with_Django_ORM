@@ -30,12 +30,12 @@ This locally-executable API can be installed using the following steps.
 3. Create a virtual environment for the project with `$ py -m venv env` on windows or `$ python3 -m venv env` on macos or linux.
 4. Activate the virtual environment with `$ env\Scripts\activate` on windows or `$ source env/bin/activate` on macos or linux.
 5. Install project dependencies with `$ pip install -r requirements.txt`
-6. perform migrations with `$ python manage.py migrate`
+6. Move to the orm folder with `$ cd orm`
 7. Run the server with `$ python manage.py runsslserver`
 
 When the server is running after step 7 of the procedure, the API can be requested from endpoints starting with the following base URL: https://127.0.0.1:8000/api/
 
-Steps 1, 3, 5 and 6 are only required for initial installation. For subsequent launches of the API, you only have to execute steps 4 and 7 from the root folder of the project.
+Steps 1, 3, 5 and 7 are only required for initial installation. For subsequent launches of the API, you only have to execute steps 4, 6 and 7 from the root folder of the project.
 
 ## Usage and detailed endpoint documentation
 The API can be used from:
