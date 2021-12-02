@@ -16,8 +16,11 @@ class Client(models.Model):
 
     def __str__(self):
         name = self.first_name + " " + self.last_name
-        displayed = "name: {} - phone: {} - email: {}".format(name, self.phone, self.email)
+        displayed = "id: {} | name: {} ".format(self.client_id, name)
         return displayed
+
+    class Meta:
+        verbose_name_plural = "Clients"
 
 
 class Sales(models.Model):
@@ -27,8 +30,12 @@ class Sales(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
+    def user_details(self):
+        """ used for admin interface visual"""
+        return "id: {} | name: {}".format(self.user.id, self.user)
+
     def __str__(self):
-        displayed = "name: {}".format(str(self.user))
+        displayed = "id: {} | name: {}".format(self.user.id, str(self.user))
         return displayed
 
 
@@ -42,10 +49,21 @@ class Contract(models.Model):
     payment_due = models.DateTimeField(blank=True)
     sales = models.ForeignKey(Sales, on_delete=models.CASCADE)
 
+    def client_id(self):
+        """ used for admin site visualization """
+        return str(self.client.client_id)
+
+    def client_name(self):
+        """ used for admin site visualization """
+        name = self.client.first_name + " " + self.client.last_name
+        return name
+
     def __str__(self):
-        displayed = "id: {} - client: {} - sales: {} - signed: {} ".\
-            format(str(self.contract_id), str(self.client), str(self.sales), self.signed)
+        displayed = "contract_id: {} - client_details: {} ".format(str(self.contract_id), str(self.client))
         return displayed
+
+    class Meta:
+        verbose_name_plural = "Contracts"
 
 
 class Event(models.Model):
@@ -62,6 +80,20 @@ class Event(models.Model):
         displayed = "id: {} - contract: {} - date: {}".\
             format(str(self.event_id), str(self.contract), self.event_date)
         return displayed
+
+    def contract_id(self):
+        """ used for admin site visualization """
+        return str(self.contract.contract_id)
+
+    def client_id(self):
+        """ used for admin site visualization """
+        return self.contract.client_id
+
+    def client_name(self):
+        return self.contract.client_name()
+
+    class Meta:
+        verbose_name_plural = "Events"
 
 
 class Support(models.Model):

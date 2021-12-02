@@ -23,6 +23,10 @@ router.register('clients', ClientsViewset, basename='clients')
 router.register('contracts', ContractsViewset, basename='contracts')
 router.register('events', EventsViewset, basename='events')
 
+admin.site.site_header = "CRM interne"
+admin.site.site_title = "CRM interne"
+admin.site.index_title = "Home page"
+
 urlpatterns = [
     path('management/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
