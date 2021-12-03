@@ -66,6 +66,18 @@ class Contract(models.Model):
         verbose_name_plural = "Contracts"
 
 
+class Support(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=20, blank=True)
+    mobile = models.CharField(max_length=20, blank=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        displayed = "name: {}".format(str(self.user))
+        return displayed
+
+
 class Event(models.Model):
     event_id = models.AutoField(primary_key=True)
     contract = models.OneToOneField(Contract, on_delete=models.CASCADE, blank=True, null=True)
@@ -75,6 +87,8 @@ class Event(models.Model):
     attendees = models.IntegerField(blank=True)
     event_date = models.DateTimeField(blank=True)
     notes = models.TextField(blank=True)
+    support = models.ForeignKey(Support, on_delete=models.CASCADE, null=True, blank=True)
+
 
     def __str__(self):
         displayed = "id: {} - contract: {} - date: {}".\
@@ -92,19 +106,27 @@ class Event(models.Model):
     def client_name(self):
         return self.contract.client_name()
 
+    def support_id(self):
+        """ used for admin site visualization """
+        user_id = -1
+        try:
+            user_id = self.support.user.id
+        except AttributeError:
+            pass
+        return user_id
+
+    def support_name(self):
+        """ used for admin site visualization """
+        user_name = "To be assigned"
+        try:
+            user_name = self.support.user
+        except AttributeError:
+            pass
+        return user_name
+
+
     class Meta:
         verbose_name_plural = "Events"
 
 
-class Support(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20, blank=True)
-    mobile = models.CharField(max_length=20, blank=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
-
-    def __str__(self):
-        displayed = "name: {}".format(str(self.user))
-        return displayed
 

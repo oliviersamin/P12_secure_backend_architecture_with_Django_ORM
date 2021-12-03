@@ -64,7 +64,7 @@ class ContractsViewset(ModelViewSet):
 
 
 class EventsViewset(ModelViewSet):
-    supports = Support.objects.all()
+    # supports = Support.objects.all()
     permission_classes = (DjangoModelPermissions,)
     search_fields = ['contract__client__first_name', 'contract__client__last_name', 'contract__client__email',
                      'event_date']

@@ -12,7 +12,7 @@ class ContractsAdmin(admin.ModelAdmin):
 
 
 class EventsAdmin(admin.ModelAdmin):
-    list_display = ('event_id', 'contract_id', 'client_id', 'client_name', 'event_date', 'attendees', 'event_performed')
+    list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date', 'attendees', 'event_performed')
 
 
 class SalesAdmin(admin.ModelAdmin):
