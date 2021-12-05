@@ -6,7 +6,7 @@ class Client(models.Model):
     client_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=25, blank=True)
-    email = models.EmailField(max_length=100, unique=True, blank=True)
+    email = models.EmailField(max_length=100, unique=True)
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
     company_name = models.CharField(max_length=250, blank=True)
@@ -45,8 +45,8 @@ class Contract(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True, blank=True)
     signed = models.BooleanField(default=False)
-    amount = models.FloatField(blank=True)
-    payment_due = models.DateTimeField(blank=True)
+    amount = models.FloatField(blank=True, null=True)
+    payment_due = models.DateTimeField(blank=True, null=True)
     sales = models.ForeignKey(Sales, on_delete=models.CASCADE)
 
     def client_id(self):
@@ -80,7 +80,7 @@ class Support(models.Model):
 
 class Event(models.Model):
     event_id = models.AutoField(primary_key=True)
-    contract = models.OneToOneField(Contract, on_delete=models.CASCADE, blank=True, null=True)
+    contract = models.OneToOneField(Contract, on_delete=models.CASCADE, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     event_performed = models.BooleanField(default=False)
@@ -101,10 +101,20 @@ class Event(models.Model):
 
     def client_id(self):
         """ used for admin site visualization """
-        return self.contract.client_id
+        client_id = None
+        try:
+            client_id = self.contract.client_id
+        except AttributeError:
+            pass
+        return client_id
 
     def client_name(self):
-        return self.contract.client_name()
+        client_name = None
+        try:
+            client_name = self.contract.client_name()
+        except AttributeError:
+            pass
+        return client_name
 
     def support_id(self):
         """ used for admin site visualization """

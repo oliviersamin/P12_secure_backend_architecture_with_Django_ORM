@@ -7,7 +7,7 @@ class IsClientContact(BasePermission):
     Step 1: check if the client has signed a contract
     Step 2: contract signed?
      - if not then any sales can update the client details
-     - if yes then only the sales that has signed the contract with the client can change its details
+     - if yes then only the sales that have signed the contract with the client can change its details
     """
     def has_object_permission(self, request, view, obj):
         """
@@ -24,13 +24,10 @@ class IsClientContact(BasePermission):
                 contract_signed = True
                 break
         # Step 2
-        # print("########### contract signed = {} #############".format(contract_signed))
         if contract_signed:
-            # print("dans if contract_signed")
             for contract in view.contracts:
                 if contract.client == obj:
                     client_with_contract.append(contract)
-            # print("######## client_with_contract {} ###########".format(client_with_contract))
             if client_with_contract:
                 for contract in client_with_contract:
                     if contract.sales.user == request.user:
