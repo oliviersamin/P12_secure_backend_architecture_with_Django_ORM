@@ -58,8 +58,6 @@ class ContractsViewset(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         client = serializer.validated_data['client']
-        print("\n###### CREATE CONTRACTS #####")
-        print(client.is_confirmed_client)
         instance = None
         if client.is_confirmed_client:
             for sale in self.sales_persons:
@@ -99,6 +97,27 @@ class EventsViewset(ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     serializer_class = EventSerializer
     detail_serializer_class = EventDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        """ generate automatically that:
+         1. the event can be created only if the signed attribute of the contract is set to True"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        contract = serializer.validated_data['contract']
+        print("\n###### CREATE EVENT ###########")
+        print(serializer.validated_data.keys())
+        if contract.signed:
+            instance = serializer.save()
+            return_serializer = self.detail_serializer_class(instance)
+            headers = self.get_success_headers(return_serializer.data)
+            return Response(
+                return_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        else:
+            message = "EVENT NOT CREATED: The selected contract is not signed, please change the " \
+                      "signed status of the contract to be able to create the event"
+            return Response(message, status=status.HTTP_403_FORBIDDEN)
+
 
     def get_queryset(self):
         return Event.objects.all()
