@@ -4,13 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
 from api.serializers import ClientSerializer, ClientDetailSerializer, ContractSerializer, ContractDetailSerializer
 from api.serializers import EventSerializer, EventDetailSerializer
 from api.models import Client, Support, Sales, Event, Contract
 from rest_framework.permissions import DjangoModelPermissions
 from api.permissions import IsClientContact, IsSalesContact, IsEventContact
-from rest_framework.decorators import action
 
 
 class BlacklistRefreshView(APIView):

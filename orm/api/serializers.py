@@ -48,8 +48,6 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['event_id', 'event_date', 'contract', 'support', 'event_performed', 'notes']
         read_only_fields = ('event_id')
-        # extra_kwargs = {'event_id': {'read_only': True},
-        #                 'support': {'read-only':True}}
 
 
 class EventDetailSerializer(serializers.ModelSerializer):
