@@ -1,10 +1,12 @@
 from django.contrib import admin
 from .models import Client, Contract, Event, Sales, Support
 from django.contrib import messages
-
+from rest_framework import filters
 
 
 class ClientsAdmin(admin.ModelAdmin):
+    search_fields = ['first_name', 'last_name', 'email']
+    filter_backends = (filters.SearchFilter,)
     list_display = ('client_id', 'first_name', 'last_name', 'email', 'phone', 'mobile', 'is_confirmed_client',
                     'company_name', 'date_created')
     contracts = Contract.objects.all()
@@ -41,6 +43,8 @@ class ClientsAdmin(admin.ModelAdmin):
 
 
 class ContractsAdmin(admin.ModelAdmin):
+    search_fields = ['client__first_name', 'client__last_name', 'client__email', 'date_created', 'amount']
+    filter_backends = (filters.SearchFilter,)
     list_display = ('contract_id', 'signed', 'amount', 'payment_due', 'client', 'sales', 'date_created')
     contracts = Contract.objects.all()
 
@@ -99,6 +103,9 @@ class ContractsAdmin(admin.ModelAdmin):
 
 
 class EventsAdmin(admin.ModelAdmin):
+    search_fields = ['contract__client__first_name', 'contract__client__last_name', 'contract__client__email',
+                     'event_date']
+    filter_backends = (filters.SearchFilter,)
     list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date', 'attendees', 'event_performed')
     events = Event.objects.all()
 
