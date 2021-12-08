@@ -10,6 +10,15 @@ class ClientsAdmin(admin.ModelAdmin):
     list_display = ('client_id', 'first_name', 'last_name', 'email', 'phone', 'mobile', 'is_confirmed_client',
                     'company_name', 'date_created')
     contracts = Contract.objects.all()
+
+    def message_user(self, *args):
+        """
+        override this method to cancel all the usual messages displayed when clicked on the save button
+        :param args:
+        :return:
+        """
+        pass
+
     def save_model(self, request, obj, form, change):
         """
         Step 1: check if there are contracts (even not signed) with this client.
@@ -23,30 +32,49 @@ class ClientsAdmin(admin.ModelAdmin):
         :return:
         """
         # Step 1
-        existing_contracts = []
-        for contract in self.contracts:
-            if contract.client.client_id == obj.client_id:
-                existing_contracts.append(contract.sales.user)
+        existing_contracts = list(Contract.objects.filter(client_id=obj.client_id))
+        existing_contracts = [contract.sales.user for contract in existing_contracts]
         # Step 2
         if request.user.is_superuser:
             super().save_model(request, obj, form, change)
+            if not change:
+                message = "Client créé avec succès"
+            else:
+                message = "Client modifié avec succès"
+            messages.success(request, message)
         # Step 3
-        elif not existing_contracts:
+        elif not change:
             super().save_model(request, obj, form, change)
+            message = "Client créé avec succès"
+            messages.success(request, message)
         # Step 4
-        elif (existing_contracts != []) & (request.user in existing_contracts):
-            super().save_model(request, obj, form, change)
-        elif (existing_contracts != []) & (request.user not in existing_contracts):
-            message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier les détails de ce client car" \
-                      "vous n'avez signé aucun contrat avec lui."
-            self.message_user(request, message, messages.ERROR)
+        else:
+            if (existing_contracts != []) & (request.user in existing_contracts):
+                super().save_model(request, obj, form, change)
+                message = "Client modifié avec succès"
+                messages.success(request, message)
+            elif (request.user not in existing_contracts) & (existing_contracts != []):
+                message = "Vous n'êtes pas autorisé à modifier les détails de ce client car" \
+                          "vous n'avez signé aucun contrat avec lui."
+                messages.error(request, message)
+            else:
+                super().save_model(request, obj, form, change)
+                message = "Client modifié avec succès"
+                messages.success(request, message)
 
 
 class ContractsAdmin(admin.ModelAdmin):
     search_fields = ['client__first_name', 'client__last_name', 'client__email', 'date_created', 'amount']
     filter_backends = (filters.SearchFilter,)
     list_display = ('contract_id', 'signed', 'amount', 'payment_due', 'client', 'sales', 'date_created')
-    contracts = Contract.objects.all()
+
+    def message_user(self, *args):
+        """
+        override this method to cancel all the usual messages displayed when clicked on the save button
+        :param args:
+        :return:
+        """
+        pass
 
     def save_model(self, request, obj, form, change):
         """
@@ -64,42 +92,57 @@ class ContractsAdmin(admin.ModelAdmin):
         :return:
         """
         # Step 1
-        existing_contract = None
-        for contract in self.contracts:
-            if contract.contract_id == obj.contract_id:
-                existing_contract = contract
-                break
+        try:
+            existing_contract = list(Contract.objects.filter(contract_id=obj.contract_id))[0]
+        except IndexError:
+            existing_contract = None
         # Step 2
         if obj.client.is_confirmed_client:
             # Step 3
             if request.user.is_superuser:
                 super().save_model(request, obj, form, change)
+                if change:
+                    message = "contrat {} modifié avec succès".format(obj.contract_id)
+                else:
+                    message = "contrat {} créé avec succès".format(obj.contract_id)
+                messages.success(request, message)
             # Step 4
-            elif existing_contract is None:
-                if obj.sales.user == request.user:
+            elif not change:
+                if obj.sales.user == request.user:  # the sales contact correspond to the user of request
                     super().save_model(request, obj, form, change)
+                    message = "contrat {} créé avec succès".format(obj.contract_id)
+                    messages.success(request, message)
+                else:  # the sales contact correspond to the user of request
+                    message = "contrat non créé, vous devez être le contact de vente " \
+                              "pour ce contrat".format(obj.contract_id)
+                    messages.error(request, message)
+
             # Step 5
-            elif existing_contract is not None:
+            else:
                 if request.user != existing_contract.sales.user:
-                    message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier ce contrat"
-                    self.message_user(request, message, messages.ERROR)
+                    message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier " \
+                              "le contrat {}".format(existing_contract.contract_id)
+                    messages.error(request, message)
                 # Step 6
                 else:
-                    if obj.sales.user == request.user:
+                    if obj.sales.user != request.user:
+                        message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier le contact de vente du " \
+                                  "contrat {}".format(obj.contract_id)
+                        messages.error(request, message)
+                    elif obj.client != existing_contract.client:
+                        message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier le client du " \
+                                  "contrat {}".format(obj.contract_id)
+                        messages.error(request, message)
+                    elif obj.sales.user == request.user:
                         super().save_model(request, obj, form, change)
-                    else:
-                        message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier le contact de vente"
-                        self.message_user(request, message, messages.ERROR)
+                        message = "contrat {} modifié avec succès".format(obj.contract_id)
+                        messages.success(request, message)
 
-            else:
-                message = "Opération non réalisée. Vous êtes {} alors que {} est sélectionné comme contact de vente."\
-                    .format(request.user, obj.sales.user)
-                self.message_user(request, message, messages.ERROR)
         else:
             client_name = obj.client.first_name + " " + obj.client.last_name
             message = "Opération non réalisée. Le client {} n'est pas un client confirmé. Vous devez modifier " \
                       "son statut 'is confirmed client' avant de créer un contrat avec lui.".format(client_name)
-            self.message_user(request, message, messages.ERROR)
+            messages.error(request, message)
 
 
 class EventsAdmin(admin.ModelAdmin):
@@ -107,56 +150,73 @@ class EventsAdmin(admin.ModelAdmin):
                      'event_date']
     filter_backends = (filters.SearchFilter,)
     list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date', 'attendees', 'event_performed')
-    events = Event.objects.all()
+    # events = Event.objects.all()
+
+    def message_user(self, *args):
+        """
+        override this method to cancel all the usual messages displayed when clicked on the save button
+        :param args:
+        :return:
+        """
+        pass
 
     def save_model(self, request, obj, form, change):
         """
-        Step1: Check if the contract linked with the event is signed
-        Step2: check if user is superuser so that he can perform all the actions he wants
-        Step3: check if this is the creation of a new event
-        Step4: check if the update comes from a support person which is not the support contact
-        Step5: check if this is an update of an existing event and make sure that the support contact updating
-        it can't change the support contact in it.
+        Step1: check if user is superuser so that he can perform all the actions he wants
+        Step2: Check if this is an event creation
+        Step3: Check if this is un update and the event has not been performed yet
+            Step4: Check if the contract linked with the event is signed
+            Step5: check if the update comes from a support person which is not the support contact
+            Step6: check that the support contact updating can't change the support contact
+            and the contract in it.
         :param request:
         :param obj:
         :param form:
         :param change:
         :return:
         """
-        existing_event = None
-        for event in self.events:
-            if event.event_id == obj.event_id:
-                existing_event = event
-                break
+        try:
+            existing_event = list(Event.objects.filter(event_id=obj.event_id))[0]
+        except IndexError:
+            existing_event = list(Event.objects.filter(event_id=obj.event_id))
+        print("\n######## existing_event = {} #########\n".format(existing_event))
         # Step 1
-        if obj.contract.signed:
-            # Step 2
-            if request.user.is_superuser:
-                super().save_model(request, obj, form, change)
-            # Step 3
-            elif obj.event_id != existing_event.event_id:
-                super().save_model(request, obj, form, change)
-            elif obj.event_id == existing_event.event_id:
-                # Step 4
+        if request.user.is_superuser:
+            super().save_model(request, obj, form, change)
+            if change:
+                message = "Évènement modifié avec succès"
+            else:
+                message = "Évènement créé avec succès"
+            messages.success(request, message)
+        # Step 2
+        if not existing_event:
+            super().save_model(request, obj, form, change)
+            message = "Évènement créé avec succès"
+            messages.success(request, message)
+        # Step 3
+        elif not existing_event.event_performed:
+            # Step 4
+            if obj.contract.signed:
+                # Step 5
                 if obj.support.user != request.user:
                     message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier cet évènement."
-                    self.message_user(request, message, messages.ERROR)
-                # Step 5
+                    messages.error(request, message)
+                # Step 6
                 else:
                     if (obj.support == existing_event.support) & (obj.contract == existing_event.contract):
                         super().save_model(request, obj, form, change)
+                        message = "Évènement modifié avec succès"
+                        messages.success(request, message)
+
                     else:
                         message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier ces paramètres."
-                        self.message_user(request, message, messages.ERROR)
-
+                        messages.error(request, message)
             else:
-                message = "Opération non réalisée. Vous n'êtes pas autorisé à faire cette modification."
-                self.message_user(request, message, messages.ERROR)
+                message = "Opération non réalisée. Le contrat lié à cet évènement n'est pas encore signé."
+                messages.error(request, message)
         else:
-            message = "Opération non réalisée. Le contrat lié à cet évènement n'es pas encore signé." \
-                      "Le contrat doit être signé avant de pouvoir créer un évènement."
-            self.message_user(request, message, messages.ERROR)
-
+            message = "Opération non réalisée. L'évènement à déjà eu lieu et ne peut plus être modifié."
+            messages.error(request, message)
 
 
 class SalesAdmin(admin.ModelAdmin):
