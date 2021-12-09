@@ -84,9 +84,9 @@ class Event(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     event_performed = models.BooleanField(default=False)
-    attendees = models.IntegerField(blank=True)
-    event_date = models.DateTimeField(blank=True)
-    notes = models.TextField(blank=True)
+    attendees = models.IntegerField(blank=True, null=True)
+    event_date = models.DateTimeField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
     support = models.ForeignKey(Support, on_delete=models.CASCADE, null=True, blank=True)
 
 

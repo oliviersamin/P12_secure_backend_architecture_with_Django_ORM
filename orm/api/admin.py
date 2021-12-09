@@ -9,7 +9,27 @@ class ClientsAdmin(admin.ModelAdmin):
     filter_backends = (filters.SearchFilter,)
     list_display = ('client_id', 'first_name', 'last_name', 'email', 'phone', 'mobile', 'is_confirmed_client',
                     'company_name', 'date_created')
-    contracts = Contract.objects.all()
+    events = Event.objects.all()
+    supports = [support.user for support in list(Support.objects.all())]
+
+    def get_queryset(self, request):
+        """
+        If the user is a support person, it display only clients that are related to events managed by the user.
+        If the user is not a support person, then he can see all the clients
+        :param request:
+        :return: QuerySet
+        """
+        qs = super().get_queryset(request)
+        if request.user in self.supports:
+            valid_clients_id = []
+            for event in self.events:
+                try:
+                    if event.support.user == request.user:
+                        valid_clients_id.append(event.contract.client.client_id)
+                except AttributeError:
+                    pass
+            return qs.filter(client_id__in=valid_clients_id)
+        return qs
 
     def message_user(self, *args):
         """
@@ -68,6 +88,25 @@ class ContractsAdmin(admin.ModelAdmin):
     filter_backends = (filters.SearchFilter,)
     list_display = ('contract_id', 'signed', 'amount', 'payment_due', 'client', 'sales', 'date_created')
 
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Step 1: The superuser can get access and modify all the data
+        Step2: If the sales user is the sales contact in the contract he can modify some data
+        Step3: If the sales user is not the sales contact in the contract, he cannot change anything
+        :param request:
+        :param obj:
+        :return:
+        """
+        user = request.user
+        readonly = []
+        if (user.is_superuser) or (obj is None):
+            readonly = []
+        elif user == obj.sales.user:
+            readonly = ['client', 'sales', 'date_created']
+        elif user != obj.sales.user:
+            readonly = ['client', 'sales', 'date_created', 'signed', 'amount', 'payment_due',]
+        return readonly
+
     def message_user(self, *args):
         """
         override this method to cancel all the usual messages displayed when clicked on the save button
@@ -78,13 +117,11 @@ class ContractsAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        Step1: check if the contract is already existing and save it in case in the existing_contract variable
-        Step2: check that the client in the contract is a confirmed client
-        Step3: check if user is superuser so that he can perform all the actions he wants
-        Step4: check if this is the creation of a new contract
-        Step 5: check if the update comes from a sales person which is not the sales contact
-        Step 6: check if this is an update of an existing contract and make sure that the sales contact updating
-        it can't change the sales contact in it.
+        Step 1: check that the client in the contract is a confirmed client
+        Step 2: check if user is superuser so that he can perform all the actions he wants
+        Step 3: check if this is the creation of a new contract
+        Step 4: check if the update comes from a sales person which is not the sales contact
+        Step 5: check if the update comes from a sales person which is the sales contact
         :param request:
         :param obj:
         :param form:
@@ -92,13 +129,8 @@ class ContractsAdmin(admin.ModelAdmin):
         :return:
         """
         # Step 1
-        try:
-            existing_contract = list(Contract.objects.filter(contract_id=obj.contract_id))[0]
-        except IndexError:
-            existing_contract = None
-        # Step 2
         if obj.client.is_confirmed_client:
-            # Step 3
+            # Step 2
             if request.user.is_superuser:
                 super().save_model(request, obj, form, change)
                 if change:
@@ -106,7 +138,7 @@ class ContractsAdmin(admin.ModelAdmin):
                 else:
                     message = "contrat {} créé avec succès".format(obj.contract_id)
                 messages.success(request, message)
-            # Step 4
+            # Step 3
             elif not change:
                 if obj.sales.user == request.user:  # the sales contact correspond to the user of request
                     super().save_model(request, obj, form, change)
@@ -117,26 +149,17 @@ class ContractsAdmin(admin.ModelAdmin):
                               "pour ce contrat".format(obj.contract_id)
                     messages.error(request, message)
 
-            # Step 5
             else:
-                if request.user != existing_contract.sales.user:
+                # Step 4
+                if request.user != obj.sales.user:
                     message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier " \
-                              "le contrat {}".format(existing_contract.contract_id)
+                              "le contrat {}".format(obj.contract_id)
                     messages.error(request, message)
-                # Step 6
+                # Step 5
                 else:
-                    if obj.sales.user != request.user:
-                        message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier le contact de vente du " \
-                                  "contrat {}".format(obj.contract_id)
-                        messages.error(request, message)
-                    elif obj.client != existing_contract.client:
-                        message = "Opération non réalisée. Vous n'êtes pas autorisé à modifier le client du " \
-                                  "contrat {}".format(obj.contract_id)
-                        messages.error(request, message)
-                    elif obj.sales.user == request.user:
-                        super().save_model(request, obj, form, change)
-                        message = "contrat {} modifié avec succès".format(obj.contract_id)
-                        messages.success(request, message)
+                    super().save_model(request, obj, form, change)
+                    message = "contrat {} modifié avec succès".format(obj.contract_id)
+                    messages.success(request, message)
 
         else:
             client_name = obj.client.first_name + " " + obj.client.last_name
@@ -149,8 +172,43 @@ class EventsAdmin(admin.ModelAdmin):
     search_fields = ['contract__client__first_name', 'contract__client__last_name', 'contract__client__email',
                      'event_date']
     filter_backends = (filters.SearchFilter,)
-    list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date', 'attendees', 'event_performed')
-    # events = Event.objects.all()
+    list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date',
+                    'attendees', 'event_performed')
+    events = Event.objects.all()
+    supports = [support.user for support in list(Support.objects.all())]
+
+    def get_queryset(self, request):
+        """
+        If the user is a support person, it will display only events that he manages or has managed.
+        Otherwise it displays all the events.
+        :param request:
+        :return:
+        """
+        qs = super().get_queryset(request)
+        if request.user in self.supports:
+            valid_events_id = []
+            for event in self.events:
+                try:
+                    if event.support.user == request.user:
+                        valid_events_id.append(event.event_id)
+                except AttributeError:
+                    pass
+            return qs.filter(event_id__in=valid_events_id)
+        return qs
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Step 1: The superuser can get access and modify all the data
+        Step2: If the user is the support person, he can modify some data
+        :param request:
+        :param obj:
+        :return:
+        """
+        user = request.user
+        readonly = []
+        if user == obj.support.user:
+            readonly = ['contract', 'support', 'date_created']
+        return readonly
 
     def message_user(self, *args):
         """
@@ -189,10 +247,16 @@ class EventsAdmin(admin.ModelAdmin):
                 message = "Évènement créé avec succès"
             messages.success(request, message)
         # Step 2
-        if not existing_event:
-            super().save_model(request, obj, form, change)
-            message = "Évènement créé avec succès"
-            messages.success(request, message)
+        elif not existing_event:
+            print("\n##### obj = {} ######\n".format(obj))
+            if not obj.support:
+                super().save_model(request, obj, form, change)
+                message = "Évènement créé avec succès"
+                messages.success(request, message)
+            else:
+                message = "Évènement non créé. Vous ne pouvez pas choisir un contact de support."
+                messages.error(request, message)
+
         # Step 3
         elif not existing_event.event_performed:
             # Step 4
