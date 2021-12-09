@@ -206,9 +206,12 @@ class EventsAdmin(admin.ModelAdmin):
         """
         user = request.user
         readonly = []
-        if user == obj.support.user:
-            readonly = ['contract', 'support', 'date_created']
-        return readonly
+        try:
+            if user == obj.support.user:
+                readonly = ['contract', 'support', 'date_created']
+            return readonly
+        except AttributeError:
+            return readonly
 
     def message_user(self, *args):
         """

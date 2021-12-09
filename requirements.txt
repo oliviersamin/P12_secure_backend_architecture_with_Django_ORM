@@ -4,13 +4,13 @@ bleach==4.1.0
 Django==3.2.9
 django-sslserver==0.22
 djangorestframework==3.12.4
+djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==5.0.0
 drf-api-logger==1.0.8
 importlib-resources==5.4.0
 inflection==0.5.1
 jsonschema==4.2.1
 packaging==21.3
-psycopg2==2.9.1
 psycopg2-binary==2.9.1
 psycopg2-pool==1.1
 PyJWT==2.3.0
