@@ -7,6 +7,7 @@ from rest_framework import filters
 class ClientsAdmin(admin.ModelAdmin):
     search_fields = ['first_name', 'last_name', 'email']
     filter_backends = (filters.SearchFilter,)
+    list_filter = ('first_name', 'last_name', 'email')
     list_display = ('client_id', 'first_name', 'last_name', 'email', 'phone', 'mobile', 'is_confirmed_client',
                     'company_name', 'date_created')
     events = Event.objects.all()
@@ -87,6 +88,7 @@ class ContractsAdmin(admin.ModelAdmin):
     search_fields = ['client__first_name', 'client__last_name', 'client__email', 'date_created', 'amount']
     filter_backends = (filters.SearchFilter,)
     list_display = ('contract_id', 'signed', 'amount', 'payment_due', 'client', 'sales', 'date_created')
+    list_filter = ('client__first_name', 'client__last_name', 'client__email', 'date_created', 'amount')
 
     def get_readonly_fields(self, request, obj=None):
         """
@@ -174,6 +176,8 @@ class EventsAdmin(admin.ModelAdmin):
     filter_backends = (filters.SearchFilter,)
     list_display = ('event_id', 'contract_id', 'support_id', 'support_name', 'client_id', 'client_name', 'event_date',
                     'attendees', 'event_performed')
+    list_filter = ('contract__client__first_name', 'contract__client__last_name', 'contract__client__email',
+                     'event_date')
     events = Event.objects.all()
     supports = [support.user for support in list(Support.objects.all())]
 
