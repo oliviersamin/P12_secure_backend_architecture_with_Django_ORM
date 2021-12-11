@@ -46,21 +46,13 @@ class ContractDetailSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['event_id', 'event_date', 'event_performed', 'notes']
-        extra_kwargs = {'event_id': {'read_only': True}}
+        fields = ['event_id', 'event_date', 'contract', 'support', 'event_performed', 'notes']
+        read_only_fields = ('event_id',)
 
 
 class EventDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
+        read_only_fields = ('event_id', 'support')
 
-
-#
-# class ProjectDetailSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Projects
-#         fields = ['id', 'title', 'description', 'type', 'contributors', 'author']
-#         extra_kwargs = {'id': {'read_only': True},
-#                         'contributors': {'read_only': True},
-#                         'author': {'read_only': True}}

@@ -44,7 +44,7 @@ Some users have already been created and can be used to navigate through the API
   * salesman users:
     1. login: sales1  -  password: passwd_sales1  
     2. login: sales2  -  password: passwd_sales2  
-    3. login: support1  -  password: passwd_suport1  
+    3. login: support1  -  password: passwd_support1  
 
   You can then access to all the actions allowed by the role you logged in  
 * Postman for example  
