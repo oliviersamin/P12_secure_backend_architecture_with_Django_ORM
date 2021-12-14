@@ -75,7 +75,7 @@ class ClientsAdmin(admin.ModelAdmin):
                 message = "Client modifié avec succès"
                 messages.success(request, message)
             elif (request.user not in existing_contracts) & (existing_contracts != []):
-                message = "Vous n'êtes pas autorisé à modifier les détails de ce client car" \
+                message = "Vous n'êtes pas autorisé à modifier les détails de ce client car " \
                           "vous n'avez signé aucun contrat avec lui."
                 messages.error(request, message)
             else:
