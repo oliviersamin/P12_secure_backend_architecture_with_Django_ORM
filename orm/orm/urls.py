@@ -16,12 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from api.views import ClientsViewset, ContractsViewset, EventsViewset
+from api.views import ClientsViewSet, ContractsViewSet, EventsViewSet
 
 router = routers.SimpleRouter()
-router.register('clients', ClientsViewset, basename='clients')
-router.register('contracts', ContractsViewset, basename='contracts')
-router.register('events', EventsViewset, basename='events')
+router.register('clients', ClientsViewSet, basename='clients')
+router.register('contracts', ContractsViewSet, basename='contracts')
+router.register('events', EventsViewSet, basename='events')
 
 admin.site.site_header = "CRM interne"
 admin.site.site_title = "CRM interne"
