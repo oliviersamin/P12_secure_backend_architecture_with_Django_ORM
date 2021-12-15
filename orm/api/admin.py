@@ -104,9 +104,12 @@ class ContractsAdmin(admin.ModelAdmin):
         if (user.is_superuser) or (obj is None):
             readonly = []
         elif user == obj.sales.user:
-            readonly = ['client', 'sales', 'date_created']
+            if obj.signed:
+                readonly = ['client', 'sales', 'date_created', 'signed']
+            else:
+                readonly = ['client', 'sales', 'date_created']
         elif user != obj.sales.user:
-            readonly = ['client', 'sales', 'date_created', 'signed', 'amount', 'payment_due',]
+            readonly = ['client', 'sales', 'date_created', 'signed', 'amount', 'payment_due']
         return readonly
 
     def message_user(self, *args):
