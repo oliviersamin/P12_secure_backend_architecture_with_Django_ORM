@@ -5,6 +5,7 @@ from rest_framework import filters
 
 
 class ClientsAdmin(admin.ModelAdmin):
+    """ Implemented to use client model from database """
     search_fields = ['first_name', 'last_name', 'email']
     filter_backends = (filters.SearchFilter,)
     list_filter = ('first_name', 'last_name', 'email')
@@ -85,6 +86,7 @@ class ClientsAdmin(admin.ModelAdmin):
 
 
 class ContractsAdmin(admin.ModelAdmin):
+    """ Implemented to use contract model from database """
     search_fields = ['client__first_name', 'client__last_name', 'client__email', 'date_created', 'amount']
     filter_backends = (filters.SearchFilter,)
     list_display = ('contract_id', 'signed', 'amount', 'payment_due', 'client', 'sales', 'date_created')
@@ -174,6 +176,7 @@ class ContractsAdmin(admin.ModelAdmin):
 
 
 class EventsAdmin(admin.ModelAdmin):
+    """ Implemented to use event model from database """
     search_fields = ['contract__client__first_name', 'contract__client__last_name', 'contract__client__email',
                      'event_date']
     filter_backends = (filters.SearchFilter,)
@@ -294,12 +297,14 @@ class EventsAdmin(admin.ModelAdmin):
 
 
 class SalesAdmin(admin.ModelAdmin):
+    """ Implemented to use sales model from database """
     list_display = ('user_details', 'phone', 'mobile', 'date_updated', 'date_created')
 
 
 class SupportAdmin(admin.ModelAdmin):
-    # list_display = ('event_id', 'contract', 'event_date', 'attendees', 'event_performed')
-    pass
+    """ Implemented to use support model from database """
+    list_display = ('user_details', 'phone', 'mobile', 'date_updated', 'date_created')
+
 
 admin.site.register(Client, ClientsAdmin)
 admin.site.register(Contract, ContractsAdmin)

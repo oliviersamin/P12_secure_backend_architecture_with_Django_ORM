@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 
 class Client(models.Model):
+    """ client model """
     client_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=25, blank=True)
@@ -24,6 +25,7 @@ class Client(models.Model):
 
 
 class Sales(models.Model):
+    """ sales model """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
@@ -40,6 +42,7 @@ class Sales(models.Model):
 
 
 class Contract(models.Model):
+    """ contract model """
     contract_id = models.AutoField(primary_key=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -67,18 +70,24 @@ class Contract(models.Model):
 
 
 class Support(models.Model):
+    """ support model """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20, blank=True)
     mobile = models.CharField(max_length=20, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
+    def user_details(self):
+        """ used for admin interface visual"""
+        return "id: {} | name: {}".format(self.user.id, self.user)
+
     def __str__(self):
-        displayed = "name: {}".format(str(self.user))
+        displayed = "id: {} | name: {}".format(self.user.id, str(self.user))
         return displayed
 
 
 class Event(models.Model):
+    """ event model """
     event_id = models.AutoField(primary_key=True)
     contract = models.OneToOneField(Contract, on_delete=models.CASCADE, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
